@@ -1,0 +1,9 @@
+
+BINARY_NAME = filmweb
+
+STRIP = mipsel-linux-strip
+CXX = mipsel-linux-g++
+LDFLAGS = -L./lib/mipsel -L/usr/local/xtreamer/lib
+
+CXXFLAGS =-mno-shared -EL -mabi=32 -mips32r2 -O3 -mtune=mips32r2  -mmt -mlong-calls
+include Makefile.common

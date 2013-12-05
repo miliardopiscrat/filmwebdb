@@ -1,0 +1,8 @@
+BINARY_NAME = filmweb_linux
+
+STRIP = strip
+CXX = g++
+LDFLAGS = -L./lib/linux
+CXXFLAGS = -D_DEBUG
+STRIP = echo
+include Makefile.common
