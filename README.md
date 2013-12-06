@@ -1,0 +1,6 @@
+filmwebdb
+=========
+
+installation dir:
+
+/system/rtk_rootfs/usr/local/bin/plugin
