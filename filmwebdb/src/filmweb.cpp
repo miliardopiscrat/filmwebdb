@@ -21,15 +21,7 @@
 namespace {
 
 const std::string query_title = "http://www.filmweb.pl/search/live?q=";
-
 const std::string api_url = "https://ssl.filmweb.pl/api?";
-
-const char * fullInfoFile = "/tmp/fullInfo.dat";
-const char * descrInfoFile = "/tmp/descrInfoFile.dat";
-const char * imageInfoFile = "/tmp/imageInfoFile.dat";
-
-const char * directorInfoFile = "/tmp/directorInfo.dat";
-const char * actorsInfoFile = "/tmp/actorsInfo.dat";
 
 const char* query_file = "/tmp/query.data";
 
@@ -87,151 +79,64 @@ bool gen_search_result(const char* outputFile, const std::vector<Element>& eleme
 	return true;
 }
 
-bool download_info_files(const std::string& keyword) {
-	std::ofstream outFile;
-	outFile.open(fullInfoFile, std::ios::out | std::ios::binary);
-	if (!outFile.good()) {
-		outFile.close();
-		return false;
-	}
+bool get_info_result(const std::string& keyword, InfoResult& result) {
+
+	FileDownloader downloader(20);
+
+	std::stringstream fullInfoBuff;
+	std::stringstream descrInfoFileBuff;
+	std::stringstream imageInfoFileBuff;
+	std::stringstream directorInfoFileBuff;
+	std::stringstream actorsInfoFileBuff;
 
 	ApiUrlRequestBuilder builder(api_url, keyword, (typeIdTrace<GETFILMINFOFULL>()));
-	FileDownloader downloader(10);
-	if (!downloader.downloadFile(builder, outFile)) {
-		outFile.close();
-		return false;
-	}
+	if (!downloader.downloadFile(builder, fullInfoBuff)) {
 
-	outFile.close();
-	outFile.open(descrInfoFile, std::ios::out | std::ios::binary);
-
-	if (!outFile.good()) {
-		outFile.close();
 		return false;
 	}
 
 	builder = ApiUrlRequestBuilder(api_url, keyword, (typeIdTrace<GETFILMDESCRIPTION>()));
+	if (!downloader.downloadFile(builder, descrInfoFileBuff)) {
 
-	if (!downloader.downloadFile(builder, outFile)) {
-
-		outFile.close();
-		return false;
-	}
-
-	outFile.close();
-	outFile.open(imageInfoFile, std::ios::out | std::ios::binary);
-
-	if (!outFile.good()) {
-		outFile.close();
 		return false;
 	}
 
 	builder = ApiUrlRequestBuilder(api_url, keyword, 0, 2, (typeIdTrace<GETFILMIMAGES>()));
+	if (!downloader.downloadFile(builder, imageInfoFileBuff)) {
 
-	if (!downloader.downloadFile(builder, outFile)) {
-
-		outFile.close();
-		return false;
-	}
-
-	outFile.close();
-	outFile.open(directorInfoFile, std::ios::out | std::ios::binary);
-
-	if (!outFile.good()) {
-		outFile.close();
 		return false;
 	}
 
 	builder = ApiUrlRequestBuilder(api_url, keyword, DIRECTOR, 0, 1);
+	if (!downloader.downloadFile(builder, directorInfoFileBuff)) {
 
-	if (!downloader.downloadFile(builder, outFile)) {
-
-		outFile.close();
-		return false;
-	}
-
-	outFile.close();
-	outFile.open(actorsInfoFile, std::ios::out | std::ios::binary);
-
-	if (!outFile.good()) {
-		outFile.close();
 		return false;
 	}
 
 	builder = ApiUrlRequestBuilder(api_url, keyword, ACTOR, 0, 1);
+	if (!downloader.downloadFile(builder, actorsInfoFileBuff)) {
 
-	if (!downloader.downloadFile(builder, outFile)) {
-
-		outFile.close();
 		return false;
 	}
 
-	return true;
-}
-
-bool get_search_info(InfoResult& result) {
-	std::ifstream fullInfoStream;
-	fullInfoStream.open(fullInfoFile, std::ios::out | std::ios::binary);
-
-	if (!fullInfoStream.good()) {
-
-		fullInfoStream.close();
-		return false;
-	}
-
-	std::ifstream descrInfoStream;
-	descrInfoStream.open(descrInfoFile, std::ios::out | std::ios::binary);
-
-	if (!descrInfoStream.good()) {
-
-		descrInfoStream.close();
-		return false;
-	}
-
-	std::ifstream actorsInfoStream;
-	actorsInfoStream.open(actorsInfoFile, std::ios::out | std::ios::binary);
-
-	if (!actorsInfoStream.good()) {
-
-		actorsInfoStream.close();
-		return false;
-	}
-
-	std::ifstream directorInfoStream;
-	directorInfoStream.open(directorInfoFile, std::ios::out | std::ios::binary);
-
-	if (!directorInfoStream.good()) {
-
-		directorInfoStream.close();
-		return false;
-	}
-
-	std::ifstream imageInfoStream;
-	imageInfoStream.open(imageInfoFile, std::ios::out | std::ios::binary);
-
-	if (!imageInfoStream.good()) {
-
-		imageInfoStream.close();
-		return false;
-	}
-
-	FilmWebInfoHandle handleInfo(fullInfoStream);
+	FilmWebInfoHandle handleInfo(fullInfoBuff);
 	handleInfo.parse(result);
 
-	FilmWebDescrHandle handleDescr(descrInfoStream);
+	FilmWebDescrHandle handleDescr(descrInfoFileBuff);
 	handleDescr.parse(result);
 
-	FilmWebActorHandle handleActors(actorsInfoStream);
+	FilmWebActorHandle handleActors(actorsInfoFileBuff);
 	handleActors.parse(result);
 
-	FilmWebDirectorHandle handleDirector(directorInfoStream);
+	FilmWebDirectorHandle handleDirector(directorInfoFileBuff);
 	handleDirector.parse(result);
 
-	FilmWebImagesHandle handleImages(imageInfoStream);
+	FilmWebImagesHandle handleImages(imageInfoFileBuff);
 	handleImages.parse(result);
 
 	return true;
 }
+
 
 int main(int argc, char ** argv) {
 
@@ -263,22 +168,20 @@ int main(int argc, char ** argv) {
 		}
 	} else {
 
-		if (!download_info_files(arguments.getKeyword())) {
+		InfoResult result = { };
+
+		if (!get_info_result(arguments.getKeyword(), result)) {
 
 			return -1;
 		}
 
-		InfoResult result = { };
 		std::istringstream idContainer(arguments.getKeyword());
 		idContainer >> result.filmweb_id;
-
-		if (!get_search_info(result)) {
-			return -1;
-		}
 
 		TRACE(result)
 
 		std::ofstream outFile;
+
 		outFile.open(arguments.getOutput().c_str(), std::ios::out | std::ios::binary);
 		if (!outFile.good()) {
 			outFile.close();
