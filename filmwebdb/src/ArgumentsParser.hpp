@@ -20,11 +20,12 @@ public:
 	}
 
 	void parse(std::string &language, std::string &output, std::string &keyword,
-			bool &searchOpt) {
+			bool &searchOpt, bool &versionInfo) {
 
 		searchOpt = false;
-		int c;
-		while ((c = getopt(_argc, _argv, "sl:k:o:")) != -1) {
+		versionInfo = false;
+		char c;
+		while ((c = getopt(_argc, _argv, "svVl:k:o:")) != -1) {
 			switch (c) {
 			case 's':
 				searchOpt = true;
@@ -39,6 +40,10 @@ public:
 			case 'o':
 				output = std::string(optarg);
 				break;
+			case 'v':
+			case 'V':
+					versionInfo =  true;
+					break;
 			}
 		}
 	}
@@ -57,12 +62,17 @@ public:
 	Arguments(int argc, char ** argv) {
 
 		ArgumentsParser parser(argc, argv);
-		parser.parse(language, output, keyword, searchOpt);
+		parser.parse(language, output, keyword, searchOpt, versionInfo);
 	}
 
 	bool isSearchOpt() const {
 
 		return searchOpt;
+	}
+
+	bool isVersionInfo() const {
+
+		return versionInfo;
 	}
 
 	const std::string& getLanguage() const {
@@ -81,7 +91,7 @@ public:
 	}
 
 private:
-	bool searchOpt;
+	bool searchOpt, versionInfo;
 	std::string language;
 	std::string keyword;
 	std::string output;

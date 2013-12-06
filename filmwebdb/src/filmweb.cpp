@@ -146,6 +146,12 @@ int main(int argc, char ** argv) {
 
 	TRACE("output: " << arguments.getOutput() << ", isSearchOpt: " << arguments.isSearchOpt() << ", keyword: " << arguments.getKeyword())
 
+	if (arguments.isVersionInfo())
+	{
+		std::cout << "Version: " << APPLICATION_VERSION << std::endl;
+		return 0;
+	}
+
 	if (arguments.getOutput().empty() || arguments.getKeyword().empty()) {
 
 		return -1;

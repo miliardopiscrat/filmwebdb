@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "version.info"
+
 #define MAX_SEARCH_RESULT 6
 #define JB_SCPR_MAX_GENRE	6
 #define JB_SCPR_MAX_ACTOR	6
