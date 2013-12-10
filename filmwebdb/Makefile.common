@@ -1,5 +1,4 @@
 
-
 CXXFLAGS += -c -g -Wall -I./include/curl -I./include/tinyxml -I./include/md5 -DTIXML_USE_STL -DSYS_UNIX=1
 LDLIBS += -ltinyxml -lcurl -lssl -lcrypto -lmd5 -ldl
 ZIP_INCLUDE = $(TARBALL_INCLUDE)
@@ -8,7 +7,7 @@ CPP_FILES := $(shell find -iname '*.cpp')
 DIR_INCLUDE := $(sort $(addprefix -I,$(dir $(wildcard src/*/)))) 
 OBJ_FILES := $(addprefix obj/$(TARGET)/,$(notdir $(CPP_FILES:.cpp=.o)))
 
-TARBALL_FILES = $(wildcard lib/*) $(wildcard src/*) $(wildcard include/*) "$(wildcard *.txt)" $(wildcard Makefile.*) Makefile
+TARBALL_FILES = $(wildcard src/*) $(wildcard include/*) "$(wildcard *.txt)" $(wildcard Makefile.*) Makefile
 
 CXXFLAGS += $(DIR_INCLUDE)
 
@@ -31,7 +30,7 @@ tarball:
 		tar --create \
 		--gzip \
 		--file $$lokaldir.tar.gz \
-		$(TARBALL_FILES) binary obj
+		$(TARBALL_FILES) binary
 
 clean:
 		rm --force obj/$(TARGET)/*.o binary/$(BINARY_NAME)
